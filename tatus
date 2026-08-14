@@ -1,0 +1,171 @@
+warning: in the working copy of 'Chapter2_project/main.ipynb', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/Chapter2_project/main.ipynb b/Chapter2_project/main.ipynb[m
+[1mindex 054a5b0..b42db17 100644[m
+[1m--- a/Chapter2_project/main.ipynb[m
+[1m+++ b/Chapter2_project/main.ipynb[m
+[36m@@ -801,1225 +801,132 @@[m
+   },[m
+   {[m
+    "cell_type": "code",[m
+[31m-   "execution_count": 48,[m
+[31m-   "id": "55ef3f9b",[m
+[32m+[m[32m   "execution_count": 74,[m
+[32m+[m[32m   "id": "afb1a56d",[m
+    "metadata": {},[m
+    "outputs": [],[m
+    "source": [[m
+[31m-    "from sklearn.impute import SimpleImputer\n",[m
+[32m+[m[32m    "from sklearn.base import BaseEstimator, TransformerMixin\n",[m
+     "\n",[m
+[31m-    "imputer = SimpleImputer(strategy=\"median\")"[m
+[32m+[m[32m    "rooms_ix, bedrooms_ix, population_ix, households_ix = 3, 4, 5, 6\n",[m
+[32m+[m[32m    "class CombinedAttributesAdder(BaseEstimator, TransformerMixin):\n",[m
+[32m+[m[32m    "    def __init__(self, add_bedrooms_per_room = True): # no *args or **kargs\n",[m
+[32m+[m[32m    "        self.add_bedrooms_per_room = add_bedrooms_per_room\n",[m
+[32m+[m[32m    "    def fit(self, X, y=None):\n",[m
+[32m+[m[32m    "        return self # nothing else to do\n",[m
+[32m+[m[32m    "    def transform(self, X, y=None):\n",[m
+[32m+[m[32m    "        rooms_per_household = X[:, rooms_ix] / X[:, households_ix]\n",[m
+[32m+[m[32m    "        population_per_household = X[:, population_ix] / X[:, households_ix]\n",[m
+[32m+[m[32m    "        if self.add_bedrooms_per_room:\n",[m
+[32m+[m[32m    "            bedrooms_per_room = X[:, bedrooms_ix] / X[:, rooms_ix]\n",[m
+[32m+[m[32m    "            return np.c_[X, rooms_per_household, population_per_household, bedrooms_per_room]\n",[m
+[32m+[m[32m    "        else:\n",[m
+[32m+[m[32m    "            return np.c_[X, rooms_per_household, population_per_household]\n",[m
+[32m+[m[32m    "attr_adder = CombinedAttributesAdder(add_bedrooms_per_room=False)\n",[m
+[32m+[m[32m    "housing_extra_attribs = attr_adder.transform(housing.values)"[m
+    ][m
+   },[m
+   {[m
+    "cell_type": "code",[m
+[31m-   "execution_count": 49,[m
+[31m-   "id": "849b5f45",[m
+[32m+[m[32m   "execution_count": 75,[m
+[32m+[m[32m   "id": "5b02eed8",[m
+    "metadata": {},[m
+    "outputs": [],[m
+    "source": [[m
+[31m-    "housing_num = housing.drop(\"ocean_proximity\", axis=1)\n"[m
+[32m+[m[32m    "from sklearn.pipeline import Pipeline\n",[m
+[32m+[m[32m    "from sklearn.impute import SimpleImputer\n",[m
+[32m+[m[32m    "from sklearn.preprocessing import StandardScaler, OneHotEncoder\n",[m
+[32m+[m[32m    "from sklearn.compose import ColumnTransformer"[m
+    ][m
+   },[m
+   {[m
+    "cell_type": "code",[m
+[31m-   "execution_count": 50,[m
+[31m-   "id": "f6e58095",[m
+[32m+[m[32m   "execution_count": 76,[m
+[32m+[m[32m   "id": "f9abdc28",[m
+    "metadata": {},[m
+[31m-   "outputs": [[m
+[31m-    {[m
+[31m-     "data": {[m
+[31m-      "text/html": [[m
+[31m-       "<style>.sk-global {\n",[m
+[31m-       "  /* Definition of color scheme common for light and dark mode */\n",[m
+[31m-       "  --sklearn-color-text: #000;\n",[m
+[31m-       "  --sklearn-color-text-muted: #666;\n",[m
+[31m-       "  --sklearn-color-line: gray;\n",[m
+[31m-       "  /* Definition of color scheme for unfitted estimators */\n",[m
+[31m-       "  --sklearn-color-unfitted-level-0: #fff5e6;\n",[m
+[31m-       "  --sklearn-color-unfitted-level-1: #f6e4d2;\n",[m
+[31m-       "  --sklearn-color-unfitted-level-2: #ffe0b3;\n",[m
+[31m-       "  --sklearn-color-unfitted-level-3: chocolate;\n",[m
+[31m-       "  /* Definition of color scheme for fitted estimators */\n",[m
+[31m-       "  --sklearn-color-fitted-level-0: #f0f8ff;\n",[m
+[31m-       "  --sklearn-color-fitted-level-1: #d4ebff;\n",[m
+[31m-       "  --sklearn-color-fitted-level-2: #b3dbfd;\n",[m
+[31m-       "  --sklearn-color-fitted-level-3: cornflowerblue;\n",[m
+[31m-       "}\n",[m
+[31m-       "\n",[m
+[31m-       ".sk-global.light {\n",[m
+[31m-       "  /* Specific color for light theme */\n",[m
+[31m-       "  --sklearn-color-text-on-default-background: black;\n",[m
+[31m-       "  --sklearn-color-background: white;\n",[m
+[31m-       "  --sklearn-color-border-box: black;\n",[m
+[31m-       "  --sklearn-color-icon: #696969;\n",[m
+[31m-       "}\n",[m
+[31m-       "\n",[m
+[31m-       ".sk-global.dark {\n",[m
+[31m-       "  --sklearn-color-text-on-default-background: white;\n",[m
+[31m-       "  --sklearn-color-background: #111;\n",[m
+[31m-       "  --sklearn-color-border-box: white;\n",[m
+[31m-       "  --sklearn-color-icon: #878787;\n",[m
+[31m-       "}\n",[m
+[31m-       "\n",[m
+[31m-       ".sk-global {\n",[m
+[31m-       "  color: var(--sklearn-color-text);\n",[m
+[31m-       "}\n",[m
+[31m-       "\n",[m
+[31m-       ".sk-global pre {\n",[m
+[31m-       "  padding: 0;\n",[m
+[31m-       "}\n",[m
+[31m-       "\n",[m
+[31m-       ".sk-global input.sk-hidden--visually {\n",[m
+[31m-       "  border: 0;\n",[m
+[31m-       "  clip-path: inset(100%);\n",[m
+[31m-       "  height: 1px;\n",[m
+[31m-       "  margin: -1px;\n",[m
+[31m-       "  overflow: hidden;\n",[m
+[31m-       "  padding: 0;\n",[m
+[31m-       "  position: absolute;\n",[m
+[31m-       "  width: 1px;\n",[m
+[31m-       "}\n",[m
+[31m-       "\n",[m
+[31m-       ".sk-global div.sk-dashed-wrapped {\n",[m
+[31m-       "  border: 1px dashed var(--sklearn-color-line);\n",[m
+[31m-       "  margin: 0 0.4em 0.5em 0.4em;\n",[m
+[31m-       "  box-sizing: border-box;\n",[m
+[31m-       "  padding-bottom: 0.4em;\n",[m
+[31m-       "  background-color: var(--sklearn-color-background);\n",[m
+[31m-       "}\n",[m
+[31m-       "\n",[m
+[31m-       ".sk-global div.sk-container {\n",[m
+[31m-       "  /* jupyter's `normalize.less` sets `[hidden] { display: none; }`\n",[m
+[31m-       "     but bootstrap.min.css set `[hidden] { display: none !important; }`\n",[m
+[31m-       "     so we also need the `!important` here to be able to override the\n",[m
+[31m-       "     default hidden behavior on the sphinx rendered scikit-learn.org.\n",[m
+[31m-       "     See: https://github.com/scikit-learn/scikit-learn/issues/21755 */\n",[m
+[31m-       "  display: inline-block !important;\n",[m
+[31m-       "  position: relative;\n",[m
+[31m-       "}\n",[m
+[31m-       "\n",[m
+[31m-       ".sk-global div.sk-text-repr-fallback {\n",[m
+[31m-       "  display: none;\n",[m
+[31m-       "}\n",[m
+[31m-       "\n",[m
+[31m-       "div.sk-parallel-item,\n",[m
+[31m-       "div.sk-serial,\n",[m
+[31m-       "div.sk-item {\n",[m
+[31m-       "  /* draw centered vertical line to link estimators */\n",[m
+[31m-       "  background-image: linear-gradient(var(--sklearn-color-text-on-default-background), var(--sklearn-color-text-on-default-background));\n",[m
+[31m-       "  background-size: 2px 100%;\n",[m
+[31m-       "  background-repeat: no-repeat;\n",[m
+[31m-       "  background-position: center center;\n",[m
+[31m-       "}\n",[m
+[31m-       "\n",[m
+[31m-       "/* Parallel-specific style estimator block */\n",[m
+[31m-       "\n",[m
+[31m-       ".sk-global div.sk-parallel-item::after {\n",[m
+[31m-       "  content: \"\";\n",[m
+[31m-       "  width: 100%;\n",[m
+[31m-       "  border-bottom: 2px solid var(--sklearn-color-text-on-default-background);\n",[m
+[31m-       "  flex-grow: 1;\n",[m
+[31m-       "}\n",[m
+[31m-       "\n",[m
+[31m-       ".sk-global div.sk-parallel {\n",[m
+[31m-       "  display: flex;\n",[m
+[31m-       "  align-items: stretch;\n",[m
+[31m-       "  justify-content: center;\n",[m
+[31m-       "  background-color: var(--sklearn-color-background);\n",[m
+[31m-       "  position: relative;\n",[m
+[31m-       "}\n",[m
+[31m-       "\n",[m
+[31m-       ".sk-global div.sk-parallel-item {\n",[m
+[31m-       "  display: flex;\n",[m
+[31m-       "  flex-direction: column;\n",[m
+[31m-       "}\n",[m
+[31m-       "\n",[m
+[31m-       
